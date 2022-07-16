@@ -8,7 +8,7 @@ import { storage, db } from "../../firebase/firebase-config";
 
 import { Camera, CameraType } from 'expo-camera';
 import * as Location from 'expo-location';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, AntDesign } from '@expo/vector-icons';
 
 const initialState = {
   photoCaption: null
@@ -16,6 +16,7 @@ const initialState = {
 
 
 const CreatePostsScreen = ({ navigation }) => {
+  const [isOpenKeyboard, setIsOpenKeyboard] = useState(false)
   const [state, setState] = useState(initialState)
   const [photo, setPhoto] = useState(null)
   const [location, setLocation] = useState(null);
@@ -68,6 +69,7 @@ const CreatePostsScreen = ({ navigation }) => {
   const sendPhoto = () => {
     uploadPostToServer()
     setState(initialState)
+    keyboardHide()
     navigation.navigate('Posts')
   }
 
@@ -75,44 +77,78 @@ const CreatePostsScreen = ({ navigation }) => {
   const handleChange = (input, value) => {
     setState(prevState => ({ ...prevState, [input]: value }))
   }
+  const clearAll = () => {
+    setPhoto(null)
+    setState(initialState)
 
+  }
   const clearPhoto = () => {
     setPhoto(null)
   }
 
+  const keyboardHide = () => {
+    setIsOpenKeyboard(false);
+    Keyboard.removeAllListeners('keyboardDidHide')
+    Keyboard.dismiss()
+  }
+
+  const keyboardShow = () => {
+    setIsOpenKeyboard(true)
+    Keyboard.addListener('keyboardDidHide', () => {
+      setIsOpenKeyboard(false);
+    })
+  }
 
 
   return (
-    <View style={styles.container}>
-      {photo ?
-        <>
-          <Image style={styles.photo} source={{uri: photo}} />
-          <TouchableOpacity onPress={clearPhoto}>
-            <Text style={{color: '#BDBDBD'}}>Редактировать фото</Text>
-          </TouchableOpacity>
-        </> 
-        :
-        <Camera style={styles.camera} ref={cameraRef}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.cameraButtonWrapper} onPress={takePhoto}>
-            <FontAwesome name="camera" size={20} color="white" />
-          </TouchableOpacity>
-        </Camera>}
+    <TouchableWithoutFeedback onPress={keyboardHide}>
+      <View style={{ ...styles.container, paddingBottom: isOpenKeyboard ? 0 : 50 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" && "padding"}>
+          <View>
+            {photo ?
+              <>
+                <Image style={styles.photo} source={{ uri: photo }} />
+                <TouchableOpacity onPress={clearPhoto}>
+                  <Text style={{ color: '#BDBDBD' }}>Редактировать фото</Text>
+                </TouchableOpacity>
+              </>
+              :
+              <Camera style={styles.camera} ref={cameraRef}>
+                <TouchableOpacity activeOpacity={0.8} style={styles.cameraButtonWrapper} onPress={takePhoto}>
+                  <FontAwesome name="camera" size={20} color="white" />
+                </TouchableOpacity>
+              </Camera>}
 
-      <View style={{ marginBottom: 16 }}>
-        <TextInput placeholder='Название' style={styles.formInput} value={state.photoCaption} onChangeText={(value) => handleChange('photoCaption', value)} />
+            <View style={{ marginTop: 45 }}>
+              <TextInput placeholder='Название..' style={styles.formInput} value={state.photoCaption} onFocus={keyboardShow} onChangeText={(value) => handleChange('photoCaption', value)} />
+            </View>
+
+            <TouchableOpacity style={photo && state.photoCaption ? styles.formSubmitButton : styles.disabledFormSubmitButton} disabled={photo && state.photoCaption ? false : true} activeOpacity={0.8} onPress={sendPhoto} >
+              <Text style={photo && state.photoCaption ? styles.formSubmitButtonText : styles.disabledFormSubmitButtonText}>Отправить</Text>
+            </TouchableOpacity>
+            {!isOpenKeyboard &&
+              <View style={styles.clearButtonWrapper}>
+                <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+                  <AntDesign name="delete" size={24} color="#DADADA" />
+                </TouchableOpacity>
+              </View>
+            }
+          </View>
+
+
+
+        </KeyboardAvoidingView>
       </View>
-      <TouchableOpacity style={styles.formSubmitButton} activeOpacity={0.8} onPress={sendPhoto} >
-        <Text style={styles.formSubmitButtonText}>Отправить</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: '#ffffff',
     paddingHorizontal: 10,
+    paddingVertical: 50,
   },
   photo: {
     height: 240,
@@ -122,7 +158,6 @@ const styles = StyleSheet.create({
     height: 240,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
   },
   cameraButtonWrapper: {
     backgroundColor: '#FFFFFF30',
@@ -141,9 +176,34 @@ const styles = StyleSheet.create({
   formSubmitButton: {
     alignItems: 'center',
     backgroundColor: '#FF6C00',
-    marginBottom: 16,
+    marginTop: 32,
     paddingVertical: 16,
     borderRadius: 100,
+  },
+  disabledFormSubmitButton: {
+    alignItems: 'center',
+    backgroundColor: '#F6F6F6',
+    marginTop: 32,
+    paddingVertical: 16,
+    borderRadius: 100,
+  },
+  disabledFormSubmitButtonText: {
+    color: '#BDBDBD',
+    fontSize: 16,
+
+  },
+  clearButtonWrapper: {
+    alignItems: "center",
+    marginTop: 50
+  },
+  clearButton: {
+    backgroundColor: '#F6F6F6',
+    borderWidth: 1,
+    borderRadius: 20,
+    borderColor: 'transparent',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    width: 70
   },
 
   formInput: {

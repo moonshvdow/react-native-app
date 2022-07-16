@@ -30,9 +30,9 @@ export const useRoute = (isAuth) => {
     }
     return (
         <MainTab.Navigator>
-        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <Feather name="grid" size={size} color={color} />}} name="Home" component={HomeScreen} />
-        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <AntDesign name="plus" size={size} color={color} />}} name="CreatePosts" component={CreatePostsScreen} />
-        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <Feather name="user" size={size} color={color} />}} name="Profile" component={ProfileScreen} />
+        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <Feather name="grid" size={size} color={focused ? '#FF6C00': '#212121'} />}} name="Home" component={HomeScreen} />
+        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <AntDesign name="plus" size={size} color={focused ? '#FF6C00': '#212121'} />}} name="CreatePosts" component={CreatePostsScreen} />
+        <MainTab.Screen options={{headerShown: false, tabBarShowLabel: false, tabBarIcon: ({ focused, size, color }) => <Feather name="user" size={size} color={focused ? '#FF6C00': '#212121'} />}} name="Profile" component={ProfileScreen} />
       </MainTab.Navigator>
     );
   };

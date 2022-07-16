@@ -1,15 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, TextInput, FlatList } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, TextInput, FlatList, KeyboardAvoidingView, Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { useSelector } from 'react-redux';
+
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebase-config";
+
+import { MaterialIcons } from '@expo/vector-icons';
 
 const CommentsScreen = ({ route }) => {
   const { login } = useSelector(state => state.auth.user)
   const { postId } = route.params;
   const [comment, setComment] = useState('')
   const [allComments, setAllComments] = useState([])
+  const [isOpenKeyboard, setIsOpenKeyboard] = useState(false)
 
 
   useEffect(() => {
@@ -19,6 +23,7 @@ const CommentsScreen = ({ route }) => {
   const uploadCommentToServer = async () => {
     await addDoc(collection(db, `posts/${postId}/comments`), { comment, login });
     setComment('')
+    keyboardHide()
   }
 
   const getAllComments = async () => {
@@ -27,26 +32,43 @@ const CommentsScreen = ({ route }) => {
     setAllComments(comments)
 
   }
+
+  const keyboardHide = () => {
+    setIsOpenKeyboard(false);
+    Keyboard.removeAllListeners('keyboardDidHide')
+    Keyboard.dismiss()
+  }
+
+  const keyboardShow = () => {
+    setIsOpenKeyboard(true)
+    Keyboard.addListener('keyboardDidHide', () => {
+      setIsOpenKeyboard(false);
+    })
+  }
   return (
-    <View style={styles.container}>
-      {allComments &&
-      <FlatList 
-      data={allComments}
-      keyExtractor={(item) => item.id}
-      renderItem={({item})=> 
-      <View style={styles.commentWrapperOther}>
-        <Text>{item.login}</Text>
-        <View style={styles.commentTextWrapperOther}>
-          <Text>{item.comment}</Text>
-        </View>
-      </View>}/>}
-      <View style={{ marginBottom: 16 }}>
-        <TextInput placeholder='Комментарий' style={styles.formInput} value={comment} onChangeText={(value) => setComment(value)} />
+    <TouchableWithoutFeedback onPress={keyboardHide}>
+      <View style={styles.container}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" && "padding"}>
+          {allComments &&
+            <FlatList
+              data={allComments}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) =>
+                <View style={styles.commentWrapperOther}>
+                  <Text>{item.login}</Text>
+                  <View style={styles.commentTextWrapperOther}>
+                    <Text>{item.comment}</Text>
+                  </View>
+                </View>} />}
+          <View style={{ marginBottom: 16 }}>
+            <TextInput placeholder='Комментировать...' style={styles.formInput} value={comment} onFocus={keyboardShow} onChangeText={(value) => setComment(value)} />
+            <TouchableOpacity style={styles.formSubmitButton} activeOpacity={0.8} onPress={uploadCommentToServer} >
+              <MaterialIcons name="send" size={15} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </View>
-      <TouchableOpacity style={styles.formSubmitButton} activeOpacity={0.8} onPress={uploadCommentToServer} >
-        <Text style={styles.formSubmitButtonText}>Отправить</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   )
 }
 const styles = StyleSheet.create({
@@ -62,19 +84,26 @@ const styles = StyleSheet.create({
 
   },
   formSubmitButton: {
-    alignItems: 'center',
+    position: 'absolute',
+    top: 8,
+    right: 8,
     backgroundColor: '#FF6C00',
     marginBottom: 16,
-    paddingVertical: 16,
-    borderRadius: 100,
+    padding: 10,
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 50,
   },
 
   formInput: {
     height: 50,
     padding: 16,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8E8E8',
+    backgroundColor: '#F6F6F6',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: 100,
     fontSize: 16,
   },
   commentWrapperOther: {

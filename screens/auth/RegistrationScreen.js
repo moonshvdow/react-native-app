@@ -13,6 +13,7 @@ const initialState = {
 export default function RegistrationScreen({navigation}) {
   const [isOpenKeyboard, setIsOpenKeyboard] = useState(false)
   const [state, setState] = useState(initialState)
+  const [passwordHide, setPasswordHide] = useState(true)
   
   const dispatch = useDispatch()
   
@@ -20,6 +21,8 @@ export default function RegistrationScreen({navigation}) {
     setState(prevState => ({...prevState, [input]: value}))
   }
   
+  const changePasswordHide = () => setPasswordHide(prevState => !prevState)
+
   const handleSubmit = () => {
     console.log(state)
     dispatch(signUp(state))
@@ -55,7 +58,8 @@ export default function RegistrationScreen({navigation}) {
               <TextInput placeholder='Адрес электронной почты' style={styles.formInput} value={state.email} onFocus={keyboardShow} onChangeText={(value)=> handleChange('email', value)} />
             </View>
             <View style={{marginBottom: 40}}>
-              <TextInput placeholder='Пароль' style={styles.formInput} value={state.password} secureTextEntry={true} onFocus={keyboardShow} onChangeText={(value)=> handleChange('password', value)}/>
+              <TextInput placeholder='Пароль' style={styles.formInput} value={state.password} secureTextEntry={passwordHide} onFocus={keyboardShow} onChangeText={(value)=> handleChange('password', value)}/>
+              <TouchableOpacity style={styles.hidePasswordButton} onPress={changePasswordHide}><Text style={styles.hidePasswordButtonText}>{passwordHide ? 'Показать' : 'Скрыть'}</Text></TouchableOpacity>
             </View>
             {!isOpenKeyboard && 
             <>
@@ -135,5 +139,14 @@ const styles = StyleSheet.create({
     color: '#1B4371',
     fontSize: 16,
     // fontFamily: 'Roboto_400Regular',
-  }
+  },
+  hidePasswordButton: {
+    position: 'absolute',
+    top: 12,
+    right: 16
+  },
+  hidePasswordButtonText: {
+    fontSize: 16,
+    color: '#1B4371'
+  },
 });
